@@ -18,10 +18,13 @@ const PORT = process.env.PORT || 3000;
 
     // Initialize WhatsApp client
     const client = new Client({
+      puppeteer: { 
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      },
       authStrategy: new RemoteAuth({
         store: store,
         backupSyncIntervalMs: 300000, // 5 minutes
-      }),
+      })
     });
 
     // Add event listeners
