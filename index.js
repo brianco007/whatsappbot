@@ -39,7 +39,7 @@ let qrCodeData = null; // Variable to store the latest QR code
       // client.sendMessage("Tienes una nueva resserva!")
     });
 
-    // QR CODE GEENERATION
+    // QR CODE GENERATION
     client.on("qr", (qr) => {
       console.log("QR Code received, generating it as an image...", qr);
 
@@ -52,7 +52,6 @@ let qrCodeData = null; // Variable to store the latest QR code
           qrCodeData = url; // Save the QR code data URL
         }
       });
-
     });
 
     client.on("disconnected", (reason) => {
@@ -67,27 +66,55 @@ let qrCodeData = null; // Variable to store the latest QR code
 
     // Initialize the client
     client.initialize();
+
+    // *********************** END OF WHATSAPP CLIENT INITIALIZATION  ***********************
+    app.use(express.json());
+
+    // Endpoint to send messages
+    app.post("/send-message", async (req, res) => {
+      const { phone, message } = req.body; // Get phone and message from request body
+      const chatId = phone.substring(1) + "@c.us"; // Format the phone number
+
+      // if (!client || !client.isReady) {
+      //   return res.status(503).json({ error: "Client is not ready" });
+      // }
+
+      try {
+        const numberDetails = await client.getNumberId(chatId);
+
+        if (numberDetails) {
+          await client.sendMessage(chatId, message);
+          return res.json({ success: true });
+        } else {
+          return res
+            .status(404)
+            .json({ success: false, error: "Number not found" });
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+        return res
+          .status(500)
+          .json({ success: false, error: "Failed to send message" });
+      }
+    });
+
+    // Route to serve the QR code
+    app.get("/qr", (req, res) => {
+      if (qrCodeData) {
+        res.send(`<img src="${qrCodeData}" alt="QR Code" />`);
+      } else {
+        res.send("QR code not generated yet.");
+      }
+    });
+
+    app.get("/", (req, res) => {
+      res.send("Hello World");
+    });
+
+    app.listen(PORT, () => {
+      console.log("listening from port", PORT);
+    });
   } catch (error) {
     console.error("Error initializing WhatsApp client:", error);
   }
-  
 })();
-
-
-// Route to serve the QR code
-app.get("/qr", (req, res) => {
-  if (qrCodeData) {
-      res.send(`<img src="${qrCodeData}" alt="QR Code" />`);
-  } else {
-      res.send("QR code not generated yet.");
-  }
-});
-
-
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
-
-app.listen(PORT, () => {
-  console.log("listening from port", PORT);
-});
