@@ -2,10 +2,13 @@ const express = require("express");
 const { Client, RemoteAuth } = require("whatsapp-web.js");
 const { MongoStore } = require("wwebjs-mongo");
 const mongoose = require("mongoose");
-const qrcode = require("qrcode-terminal");
+const qrcode = require("qrcode");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
+const fs = require("fs");
+const path = require("path");
+let qrCodeData = null; // Variable to store the latest QR code
 
 (async () => {
   try {
@@ -19,12 +22,12 @@ const PORT = process.env.PORT || 3000;
     // Initialize WhatsApp client
     const client = new Client({
       puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
       },
       authStrategy: new RemoteAuth({
         store: store,
         backupSyncIntervalMs: 300000, // 5 minutes
-      })
+      }),
     });
 
     // Add event listeners
@@ -38,9 +41,20 @@ const PORT = process.env.PORT || 3000;
       // client.sendMessage("Tienes una nueva resserva!")
     });
 
+    // QR CODE GEENERATION
     client.on("qr", (qr) => {
-      console.log("QR Code data (string):", qr);
-      // qrcode.generate(qr, { small: true })
+      console.log("QR Code received, generating it as an image...", qr);
+
+      // Store QR code as a data URL
+      qrcode.toDataURL(qr, (err, url) => {
+        if (err) {
+          console.error("Failed to generate QR code", err);
+        } else {
+          console.log("QR code generated. Check localhost:3000/qr");
+          qrCodeData = url; // Save the QR code data URL
+        }
+      });
+
     });
 
     client.on("disconnected", (reason) => {
@@ -59,3 +73,20 @@ const PORT = process.env.PORT || 3000;
     console.error("Error initializing WhatsApp client:", error);
   }
 })();
+
+// Route to serve the QR code
+app.get("/qr", (req, res) => {
+  if (qrCodeData) {
+      res.send(`<img src="${qrCodeData}" alt="QR Code" />`);
+  } else {
+      res.send("QR code not generated yet.");
+  }
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
+
+app.listen(PORT, () => {
+  console.log("listening from port", PORT);
+});
