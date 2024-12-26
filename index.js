@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 
     // Initialize WhatsApp client
     const client = new Client({
-      puppeteer: { 
+      puppeteer: {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       },
       authStrategy: new RemoteAuth({
@@ -39,8 +39,8 @@ const PORT = process.env.PORT || 3000;
     });
 
     client.on("qr", (qr) => {
-      console.log("QR Code received, generate it in logs");
-      qrcode.generate(qr, { small: true });
+      console.log("QR Code data (string):", qr);
+      // qrcode.generate(qr, { small: true })
     });
 
     client.on("disconnected", (reason) => {
