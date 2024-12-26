@@ -1,19 +1,38 @@
+# Usa una imagen base de Node.js
 FROM node:20-slim
 
-# Instala las dependencias necesarias
-RUN apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+# Instala las dependencias necesarias para Puppeteer
+RUN apt-get update && apt-get install -y \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxi6 \
+    libxtst6 \
+    libnss3 \
+    libxrandr2 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libxss1 \
+    libxshmfence1 \
+    libgbm1 \
+    libgtk-3-0 \
+    libatk-bridge2.0-0 \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# Establece el directorio de trabajo
+# Establece el directorio de trabajo en /app
 WORKDIR /app
 
-# Copia los archivos del proyecto
+# Copia los archivos de tu proyecto al contenedor
 COPY . .
 
-# Instala las dependencias de npm
+# Instala las dependencias de npm, omitiendo las dependencias de desarrollo
 RUN npm install --omit=dev
 
-# Expone el puerto si es necesario
+# Expón el puerto en el que tu aplicación escuchará (si es necesario)
 EXPOSE 3000
 
-# Comando para iniciar la aplicación
+# Comando para iniciar tu aplicación
 CMD ["node", "index.js"]
