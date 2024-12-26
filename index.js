@@ -6,8 +6,6 @@ const qrcode = require("qrcode");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
-const fs = require("fs");
-const path = require("path");
 let qrCodeData = null; // Variable to store the latest QR code
 
 (async () => {
@@ -72,7 +70,9 @@ let qrCodeData = null; // Variable to store the latest QR code
   } catch (error) {
     console.error("Error initializing WhatsApp client:", error);
   }
+  
 })();
+
 
 // Route to serve the QR code
 app.get("/qr", (req, res) => {
@@ -82,6 +82,7 @@ app.get("/qr", (req, res) => {
       res.send("QR code not generated yet.");
   }
 });
+
 
 app.get("/", (req, res) => {
   res.send("Hello World");
